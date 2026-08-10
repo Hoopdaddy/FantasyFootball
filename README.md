@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fantasy Football Draft Assistant
 
-## Getting Started
+A single-user, mobile-first web app for live snake drafts: screenshot your draft board, confirm the picks, and get a ranked "who should I take next" recommendation built from your actual roster needs and league scoring — not generic best-player-available rankings.
 
-First, run the development server:
+Built from the v1.0 PRD (screenshot ingestion, roster-construction-aware recommendations, K/DEF/TE draft-stage rules, positional scarcity).
+
+## Getting started
 
 ```bash
+npm install
+cp .env.local.example .env.local   # add your ANTHROPIC_API_KEY
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Go through **League Setup** once (roster slots, scoring, teams, draft position — pre-populated with the scoring profile from the PRD), then use the **Draft Board** during your draft.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How it works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **League Setup** (`/setup`) — roster slots (TE/K/DEF hard-capped at 1), number of teams, draft position, rounds, and the full custom scoring profile. Persisted to `localStorage` — no login, single user, per PRD §5.1 / §7.
+- **Screenshot ingestion** (`/draft`, `ScreenshotUpload`) — uploads an image to `POST /api/parse-screenshot`, which sends it to Claude's vision API with a platform-agnostic extraction prompt, fuzzy-matches names against the local player pool (`src/lib/match.ts`), and returns a review list you confirm/correct before it's added to state (PRD §5.2).
+- **Player database** (`src/lib/players.ts`) — **placeholder seed data**: realistically-shaped ADP/rank/projection data for ~180 players, not a live feed. Swap this file for a real FantasyPros/ESPN/Yahoo export closer to draft day (see below).
+- **Scoring engine** (`src/lib/scoring.ts`) — projects each player's season points against your league's exact scoring settings, not generic PPR.
+- **Recommendation engine** (`src/lib/recommend.ts`) — the core differentiator (PRD §5.4): value-over-replacement per position, positional scarcity remaining, roster-fit multipliers for open starting slots vs. FLEX vs. bench, hard K/DEF suppression until the final rounds (overridable), a hard TE lock once your starting TE slot is filled, and "run" warnings when a position is being drafted unusually fast relative to what's left.
+- **Dashboard** (`/draft`) — roster view, all-drafted list (with undo), manual add/correct with autocomplete, and a big-button "My Turn" mode for one-handed use mid-draft.
 
-## Learn More
+## Replacing the placeholder player data
 
-To learn more about Next.js, take a look at the following resources:
+`src/lib/players.ts` builds its player pool from small hand-maintained roster pools plus tier-based stat-line generators — it's intentionally easy to regenerate. To use real data before your draft:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Export a consensus ADP + rankings list (e.g. FantasyPros' ADP export) as CSV/JSON.
+2. Replace the `pools` object in `buildPlayers()` with your real player list, or write a small script that maps your export into the `Player` shape in `src/lib/types.ts`.
+3. Keep `projection` (a `ProjectedStatLine`) as realistic as you can — it drives every points/VORP calculation.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Notes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- No live scraping during the draft — draft-day speed depends on local roster-state logic only (PRD §9). The only network call during a live draft is the screenshot → Claude vision parse.
+- Auction drafts, multi-user leagues, and waiver/trade tools are explicitly out of scope for v1 (PRD §10).
