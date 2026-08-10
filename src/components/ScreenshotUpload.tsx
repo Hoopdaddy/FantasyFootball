@@ -5,6 +5,7 @@ import { searchPlayers } from "@/lib/players";
 import { useDraftStore } from "@/lib/store";
 import { POSITION_COLORS } from "@/lib/ui";
 import { Position } from "@/lib/types";
+import { usePasteImage } from "@/lib/usePasteImage";
 
 interface ReviewPick {
   key: string;
@@ -82,6 +83,8 @@ export default function ScreenshotUpload() {
     }
   }
 
+  usePasteImage(handleFile, !loading);
+
   function updatePick(key: string, patch: Partial<ReviewPick>) {
     setPicks((prev) => prev.map((p) => (p.key === key ? { ...p, ...patch } : p)));
   }
@@ -107,7 +110,8 @@ export default function ScreenshotUpload() {
       <p className="mt-1 text-xs text-slate-500">Upload after each round — new picks are added to what&apos;s already tracked.</p>
 
       <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-700 bg-slate-900 px-4 py-8 text-center hover:border-emerald-600">
-        <span className="text-sm text-slate-300">{loading ? "Parsing screenshot…" : "Tap to upload or paste a screenshot"}</span>
+        <span className="text-sm text-slate-300">{loading ? "Parsing screenshot…" : "Tap to upload a screenshot"}</span>
+        <span className="mt-1 text-xs text-slate-500">Or just press Ctrl+V to paste one from Snipping Tool.</span>
         <input
           ref={fileInputRef}
           type="file"

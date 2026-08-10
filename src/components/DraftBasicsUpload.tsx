@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import NumberInput from "@/components/NumberInput";
+import { usePasteImage } from "@/lib/usePasteImage";
 
 interface DraftBasics {
   numTeams: number;
@@ -56,6 +57,8 @@ export default function DraftBasicsUpload({
     }
   }
 
+  usePasteImage(handleFile, !loading);
+
   return (
     <div>
       <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-700 bg-slate-950 px-4 py-6 text-center hover:border-emerald-600">
@@ -63,7 +66,7 @@ export default function DraftBasicsUpload({
           {loading ? "Reading draft board…" : "Upload a screenshot of the empty draft board"}
         </span>
         <span className="mt-1 text-xs text-slate-500">
-          Most platforms show the full team × round grid before the draft starts — that&apos;s the best shot to use here.
+          Most platforms show the full team × round grid before the draft starts — that&apos;s the best shot to use here. Or press Ctrl+V to paste one from Snipping Tool.
         </span>
         <input
           ref={fileInputRef}
