@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import DraftBasicsUpload from "@/components/DraftBasicsUpload";
 import NumberInput from "@/components/NumberInput";
 import { useDraftStore } from "@/lib/store";
 import { useHydrated } from "@/lib/useHydrated";
@@ -127,13 +128,12 @@ function SetupForm({ initialConfig }: { initialConfig: LeagueConfig }) {
 
       <section className="mt-6 rounded-lg border border-slate-800 bg-slate-900 p-4">
         <h2 className="text-lg font-semibold text-slate-100">Draft Basics</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <NumberInput label="Number of teams" value={config.numTeams} min={2} max={20}
-            onChange={(v) => setConfig((c) => ({ ...c, numTeams: v }))} />
-          <NumberInput label="Your draft position" value={config.draftPosition} min={1} max={config.numTeams}
-            onChange={(v) => setConfig((c) => ({ ...c, draftPosition: v }))} />
-          <NumberInput label="Number of rounds" value={config.numRounds} min={1} max={30}
-            onChange={(v) => setConfig((c) => ({ ...c, numRounds: v }))} />
+        <p className="mt-1 text-xs text-slate-500">Teams, your draft position, and rounds — read from a screenshot, editable if it&apos;s wrong.</p>
+        <div className="mt-3">
+          <DraftBasicsUpload
+            value={{ numTeams: config.numTeams, draftPosition: config.draftPosition, numRounds: config.numRounds }}
+            onChange={(patch) => setConfig((c) => ({ ...c, ...patch }))}
+          />
         </div>
       </section>
 
